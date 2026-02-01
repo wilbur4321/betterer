@@ -18,15 +18,15 @@ export async function getEnabled(workspace: RemoteWorkspace): Promise<boolean> {
 }
 
 export async function getBettererOptions(cwd: string, workspace: RemoteWorkspace): Promise<BettererOptionsRunner> {
-  const { cachePath, configPath, filters, resultsPath, ci } = await getExtensionConfig(workspace);
+  const { cachePath, configPath, filters, resultsPath /*, ci*/ } = await getExtensionConfig(workspace);
   return {
     cache: true,
     cachePath: path.resolve(cwd, cachePath),
     configPaths: [path.resolve(cwd, configPath)],
     filters,
     resultsPath: path.resolve(cwd, resultsPath),
-    silent: true,
-    ci: !!ci
+    silent: true
+    //ci: !!ci
   };
 }
 

@@ -28,5 +28,5 @@ async function main() {
 
 void main();
 
-export { vscode } from './vscode';
-export { createFixture } from './fixture';
+export { vscode } from './vscode.js';
+export { createFixture } from './fixture.js';

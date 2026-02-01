@@ -80,5 +80,8 @@
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^2.0.5",
     "vitest-monocart-coverage": "^2.1.2"
+  },
+  "dependencies": {
+    "@vscode/vsce": "^3.7.1"
   }
 }

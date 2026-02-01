@@ -13,9 +13,9 @@ import type {
 import path from 'node:path';
 import { DiagnosticSeverity } from 'vscode-languageserver/node';
 
-import { EXTENSION_NAME } from '../constants';
-import { info } from './console';
-import { getFilePath } from './path';
+import { EXTENSION_NAME } from '../constants.js';
+import { info } from './console.js';
+import { getFilePath } from './path.js';
 
 type BettererFileDiagnostics = Record<string, Array<Diagnostic> | null>;
 
@@ -71,7 +71,9 @@ export class BettererDiagnostics {
       existingIssues = issues;
     } else {
       const fileDiff = (runSummary.diff as unknown as BettererFileTestDiff).diff[filePath];
-      info(`DEBUG: Validator: debug diff filePath=${filePath} fileDiff=${JSON.stringify(fileDiff)} runSummary=${JSON.stringify(runSummary)}`);
+      info(
+        `DEBUG: Validator: debug diff filePath=${filePath} fileDiff=${JSON.stringify(fileDiff)} runSummary=${JSON.stringify(runSummary)}`
+      );
       info(`Validator: "${runSummary.name}" got diff from Betterer for "${filePath}"`);
       existingIssues = fileDiff?.existing ?? [];
       newIssues = fileDiff?.new ?? [];
@@ -190,7 +192,9 @@ function createWarning(
 function getIssuePath(resultsPath: string, filePath: string): string {
   const directory = `${normalisedPath(path.dirname(resultsPath))}/`;
   const result = normalisedPath(path.relative(directory, filePath));
-  info(`DEBUG: getIssuePath, resultsPath: ${resultsPath}, filePath: ${filePath}, directory ${directory}, result ${result}`);
+  info(
+    `DEBUG: getIssuePath, resultsPath: ${resultsPath}, filePath: ${filePath}, directory ${directory}, result ${result}`
+  );
   return result;
 }
 
