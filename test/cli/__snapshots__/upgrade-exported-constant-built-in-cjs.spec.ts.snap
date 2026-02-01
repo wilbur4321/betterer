@@ -1,0 +1,24 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`betterer upgrade > should upgrade exported constant built-in tests in a CommonJS module 1`] = `
+[
+  "🎉 Upgrading Betterer (0ms): 1 task done!
+✅ Upgrading "./.betterer.ts": done!
+・
+・ Betterer can upgrade your test definition file automatically! ✨
+・ Here's what the changes will look like:
+・
+・ - Before
+・ + After
+・
+・ - const { regexp } = require('@betterer/regexp');
+・ + const { regexp } = require("@betterer/regexp");
+・
+・ - module.exports.noHack = regexp(/HACK/i).include('**/*.ts');
+・ + module.exports.noHack = () => regexp(/HACK/i).include("**/*.ts");
+・ +
+・
+・ If that looks okay, run \`betterer upgrade --save\` to write the changes to disk. 💾
+・",
+]
+`;

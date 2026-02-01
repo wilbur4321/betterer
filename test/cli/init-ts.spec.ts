@@ -1,11 +1,12 @@
 import type { BettererPackageJSON } from '@betterer/cli';
 
-// eslint-disable-next-line require-extensions/require-extensions -- tests not ESM ready yet
+import { describe, expect, it } from 'vitest';
+
 import { createFixture } from '../fixture';
 
 const ARGV = ['node', './bin/betterer'];
 
-import { version } from '../../packages/cli/package.json';
+import { version } from '@betterer/cli/package.json';
 
 describe('betterer cli', () => {
   it('should initialise betterer in a repo with TS', async () => {
@@ -26,11 +27,12 @@ describe('betterer cli', () => {
       }
     );
 
-    const configPath = `${paths.config}.ts`;
     const fixturePath = paths.cwd;
     const packageJSONPath = resolve('./package.json');
 
-    await cli__(fixturePath, [...ARGV, 'init']);
+    process.env.BETTERER_WORKER = 'false';
+
+    await cli__(fixturePath, [...ARGV, 'init', '--config', paths.config]);
 
     const packageJSON = JSON.parse(await readFile(packageJSONPath)) as BettererPackageJSON;
 
@@ -38,7 +40,7 @@ describe('betterer cli', () => {
     expect(packageJSON.devDependencies['@betterer/cli']).toEqual(`^${version}`);
     expect(packageJSON.devDependencies['typescript']).toBeDefined();
 
-    const config = await readFile(configPath);
+    const config = await readFile(paths.config);
 
     expect(config).toEqual('export default {\n  // Add tests here ☀️\n};\n');
 

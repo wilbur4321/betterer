@@ -1,9 +1,10 @@
 import type { BettererSuiteSummary } from '@betterer/betterer';
 
+import { describe, expect, it } from 'vitest';
+
 import assert from 'node:assert';
 
-// eslint-disable-next-line require-extensions/require-extensions -- tests not ESM ready yet
-import { createFixture } from '../fixture';
+import { createFixture } from '../fixture.js';
 
 describe('betterer.watch', () => {
   it('should ignore .gitignored files', async () => {

@@ -1,28 +1,42 @@
 import type { BettererError } from '@betterer/errors';
 
-import type { BettererOptionsAll } from './config/index.js';
+import type { BettererOptions } from './api/index.js';
 import type { BettererReporterΩ } from './reporters/index.js';
-import type { BettererVersionControlWorker } from './fs/types.js';
+import type { BettererOptionsWatcher } from './runner/index.js';
 import type { BettererGlobals } from './types.js';
 
-import { importWorker__ } from '@betterer/worker';
+import { createContextConfig, enableMode } from './context/index.js';
+import { BettererFSΩ, createFSConfig } from './fs/index.js';
+import { createReporterConfig, loadDefaultReporter } from './reporters/index.js';
+import { BettererResultsΩ } from './results/index.js';
+import { createWatcherConfig } from './runner/index.js';
 
-import { createConfig } from './config/index.js';
-import { loadDefaultReporter } from './reporters/index.js';
-import { BettererResultsFileΩ } from './results/index.js';
+export async function createGlobals(
+  options: BettererOptions,
+  optionsWatch: BettererOptionsWatcher = {}
+): Promise<BettererGlobals> {
+  let reporter = await loadDefaultReporter();
 
-export async function createGlobals(options: BettererOptionsAll = {}): Promise<BettererGlobals> {
-  const reporter = loadDefaultReporter();
-  const versionControl: BettererVersionControlWorker = importWorker__('./fs/version-control.worker.js');
   try {
-    const config = await createConfig(options, versionControl);
-    if (config.cache) {
-      await versionControl.api.enableCache(config.cachePath);
-    }
-    const resultsFile = await BettererResultsFileΩ.create(config.resultsPath, versionControl);
-    return { config, resultsFile, versionControl };
+    const configContext = createContextConfig(options);
+    const configFS = await createFSConfig(options);
+    const configReporter = await createReporterConfig(configFS, options);
+    const configWatcher = createWatcherConfig(configFS, optionsWatch);
+
+    const { resultsFile, versionControl, versionControlPath } = await BettererFSΩ.create(configFS);
+
+    const config = enableMode({
+      ...configContext,
+      ...configFS,
+      ...configReporter,
+      ...configWatcher,
+      versionControlPath
+    });
+    reporter = config.reporter;
+
+    const results = new BettererResultsΩ(await resultsFile.parse());
+    return { config, results, versionControl };
   } catch (error) {
-    await versionControl.destroy();
     const reporterΩ = reporter as BettererReporterΩ;
     await reporterΩ.configError(options, error as BettererError);
     throw error;

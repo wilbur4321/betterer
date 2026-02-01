@@ -67,7 +67,7 @@ export class BettererGitΩ implements BettererVersionControl {
     this._rootDir = path.dirname(this._gitDir);
     this._git = simpleGit(this._rootDir);
     this._cache = new BettererFileCacheΩ(this._configPaths);
-    await this._init(this._git);
+    // await this._init(this._git);
     await this.sync();
     return this._rootDir;
   }
@@ -102,19 +102,6 @@ export class BettererGitΩ implements BettererVersionControl {
     }
 
     return createHash(content);
-  }
-
-  private async _init(git: SimpleGit): Promise<void> {
-    const retries = 3;
-    for (let i = 0; i < retries; i++) {
-      try {
-        await git.init();
-      } catch (error) {
-        if (i >= retries) {
-          throw error;
-        }
-      }
-    }
   }
 
   private _toFilePaths(rootDir: string, lines: Array<string>): Array<string> {

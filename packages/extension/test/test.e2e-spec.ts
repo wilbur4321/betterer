@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import type { BettererPackageJSON } from '@betterer/cli';
 // eslint-disable-next-line import/no-unresolved -- vscode is an implicit dependency for extensions
 import type { Diagnostic, Uri } from 'vscode';
@@ -7,8 +9,6 @@ import assert from 'node:assert';
 import { vscode, createFixture } from './runner';
 
 describe('Betterer VSCode Extension', () => {
-  jest.setTimeout(600000);
-
   it('should work', async () => {
     {
       const { resolve, readFile, deleteDirectory, deleteFile } = await createFixture('.', {
@@ -35,15 +35,15 @@ describe('Betterer VSCode Extension', () => {
 
     {
       const { cleanup, resolve } = await createFixture('e2e-eslint', {
-        '.betterer.js': `
+        '.betterer.ts': `
     const { eslint } = require('../../node_modules/@betterer/eslint');
 
     module.exports = {
       'e2e-eslint': () => eslint({ 'no-debugger': 'error' }).include('./src/**/*.ts')
     };
           `,
-        '.eslintrc.js': `
-    const path = require('path');
+        '.eslintrc.cjs': `
+    const path = require('node:path');
 
     module.exports = {
       parser: '@typescript-eslint/parser',
@@ -84,7 +84,6 @@ describe('Betterer VSCode Extension', () => {
       const cachePath = resolve('./.betterer.cache');
       const configPath = resolve('./.betterer.js');
       const resultsPath = resolve('./.betterer.results');
-      const tsconfigPath = resolve('./tsconfig.json');
 
       const indexUri = vscode.Uri.file(indexPath);
 
@@ -92,7 +91,6 @@ describe('Betterer VSCode Extension', () => {
       await config.update('resultsPath', resultsPath);
       await config.update('cachePath', cachePath);
       await config.update('configPath', configPath);
-      await config.update('tsconfigPath', tsconfigPath);
 
       await writeToFile(indexUri, 'debugger;');
 
@@ -114,7 +112,7 @@ import { typescript } from '@betterer/typescript';
 import { persist } from '@betterer/fixture';
 import { smaller } from '@betterer/constraints';
 
-const shrinks = persist(__dirname, 'shrinks', 2);
+const shrinks = persist(import.meta.url, 'shrinks', 2);
 
 export default {
   'e2e-typescript': () => typescript('./tsconfig.json', {
@@ -130,13 +128,13 @@ export default {
 {
   "compilerOptions": {
     "noEmit": true,
-    "lib": ["esnext"],
+    "lib": ["esnext", "dom"],
     "moduleResolution": "node",
     "target": "ES5",
-    "typeRoots": ["../../node_modules/@types/"],
+    "typeRoots": [],
     "resolveJsonModule": true
   },
-  "include": ["./src/**/*", ".betterer.ts"]
+  "include": ["./src/**/*"]
 }
           `,
         'src/index.ts': ''
@@ -146,7 +144,6 @@ export default {
       const cachePath = resolve('./.betterer.cache');
       const configPath = resolve('./.betterer.ts');
       const resultsPath = resolve('./.betterer.results');
-      const tsconfigPath = resolve('./tsconfig.json');
 
       const indexUri = vscode.Uri.file(indexPath);
 
@@ -154,7 +151,6 @@ export default {
       await config.update('resultsPath', resultsPath);
       await config.update('cachePath', cachePath);
       await config.update('configPath', configPath);
-      await config.update('tsconfigPath', tsconfigPath);
 
       await writeToFile(
         indexUri,

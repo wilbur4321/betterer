@@ -1,7 +1,8 @@
-import type { BettererOptionsAll, BettererOptionsOverride } from '../config/index.js';
+import type { BettererOptions } from '../api/index.js';
+import type { BettererOptionsOverride } from '../config/index.js';
 import type { BettererFilePaths } from '../fs/index.js';
 import type { BettererSuiteSummary } from '../suite/index.js';
-import type { BettererRunner } from './types.js';
+import type { BettererOptionsWatcher, BettererRunner } from './types.js';
 
 import { BettererError } from '@betterer/errors';
 
@@ -16,13 +17,16 @@ export class BettererRunnerΩ implements BettererRunner {
   private _jobs: Array<BettererFilePaths> = [];
   private _running: Promise<void> | null = null;
 
-  private constructor(private _context: BettererContextΩ) {}
+  private constructor(private readonly _context: BettererContextΩ) {}
 
-  public static async create(options: BettererOptionsAll): Promise<BettererRunnerΩ> {
-    const globals = await createGlobals(options);
-    const watcher = await createWatcher(globals);
+  public static async create(
+    options: BettererOptions,
+    optionsWatch: BettererOptionsWatcher = {}
+  ): Promise<BettererRunnerΩ> {
+    const { config, results, versionControl } = await createGlobals(options, optionsWatch);
+    const watcher = await createWatcher(config);
 
-    const context = new BettererContextΩ(globals, watcher);
+    const context = await BettererContextΩ.create(config, results, versionControl, watcher);
     const runner = new BettererRunnerΩ(context);
 
     if (watcher) {
@@ -40,8 +44,8 @@ export class BettererRunnerΩ implements BettererRunner {
     await this._context.options(optionsOverride);
   }
 
-  public run(): Promise<BettererSuiteSummary> {
-    return this._context.runOnce();
+  public async run(): Promise<BettererSuiteSummary> {
+    return await this._context.runOnce();
   }
 
   public queue(filePathOrPaths: string | BettererFilePaths = []): Promise<void> {

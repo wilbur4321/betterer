@@ -4,7 +4,7 @@ import type { BettererPackageJSON } from '../types.js';
 
 import { BettererError } from '@betterer/errors';
 import { exposeToMain__ } from '@betterer/worker';
-import findUp from 'find-up';
+import { findUp } from 'find-up';
 import { promises as fs } from 'node:fs';
 
 import { getVersion } from '../version.js';
@@ -29,7 +29,7 @@ export async function run(logger: BettererLogger, cwd: string, ts: boolean): Pro
     await logger.warn('"betterer" script already exists, moving on...');
   } else {
     packageJSON.scripts.betterer = 'betterer';
-    await logger.success('added "betterer" script to package.json file.');
+    await logger.success('added "betterer" script to package.json file');
   }
 
   packageJSON.devDependencies = packageJSON.devDependencies || {};

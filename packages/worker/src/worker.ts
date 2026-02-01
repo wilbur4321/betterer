@@ -4,6 +4,7 @@ import type { BettererWorkerAPI } from './types.js';
 
 import { BettererError, isBettererError } from '@betterer/errors';
 import assert from 'node:assert';
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MessageChannel, Worker, parentPort } from 'node:worker_threads';
@@ -43,7 +44,7 @@ import { expose, proxy, releaseProxy, transferHandlers, wrap } from 'comlink';
  * @param importPath - The path to the Worker source. Should have a `.js` extension.
  * Should be relative to the file that is calling `importWorker__`.
  */
-export function importWorker__<T>(importPath: string): BettererWorkerAPI<T> {
+export async function importWorker__<T>(importPath: string): Promise<BettererWorkerAPI<T>> {
   const [, call] = callsite();
   let callerFilePath = call.getFileName();
   try {
@@ -51,8 +52,18 @@ export function importWorker__<T>(importPath: string): BettererWorkerAPI<T> {
   } catch {
     // Was probably already a file path 🤷‍♂️
   }
+
   const idPath = path.resolve(path.dirname(callerFilePath), importPath);
-  const worker = new Worker(idPath);
+  const validatedPath = await validatePath(idPath);
+
+  if (process.env.BETTERER_WORKER === 'false') {
+    return {
+      api: await importDefault<T>(validatedPath),
+      destroy: () => Promise.resolve()
+    } as BettererWorkerAPI<T>;
+  }
+
+  const worker = new Worker(validatedPath);
   const api = wrap(nodeEndpoint(worker));
 
   return exposeToWorker__({
@@ -64,6 +75,19 @@ export function importWorker__<T>(importPath: string): BettererWorkerAPI<T> {
   } as BettererWorkerAPI<T>);
 }
 
+interface ESModule<T> {
+  default: T;
+}
+
+export async function importDefault<T>(importPath: string): Promise<T> {
+  const m = (await import(importPath)) as unknown;
+  return getDefaultExport<T>(m);
+}
+
+export function getDefaultExport<T>(module: unknown): T {
+  return (module as ESModule<T>).default || (module as T);
+}
+
 /**
  * @internal This could change at any point! Please don't use!
  *
@@ -73,6 +97,10 @@ export function importWorker__<T>(importPath: string): BettererWorkerAPI<T> {
  * Will throw if it is called from the main thread.
  */
 export function exposeToMain__<Expose>(api: Expose): void {
+  if (process.env.BETTERER_WORKER === 'false') {
+    return;
+  }
+
   if (!parentPort) {
     throw new BettererError(`"exposeToMain__" called from main thread! 🤪`);
   }
@@ -84,6 +112,10 @@ export function exposeToMain__<Expose>(api: Expose): void {
  * @remarks Use `exposeToWorker__` to allow a Worker to call main thread functions across the thread boundary.
  */
 export function exposeToWorker__<Expose extends object>(api: Expose): Expose {
+  if (process.env.BETTERER_WORKER === 'false') {
+    return api;
+  }
+
   proxy(api);
   return api;
 }
@@ -169,6 +201,26 @@ type ThrownValueSerialized =
       isError: false;
       value: unknown;
     };
+
+async function validatePath(idPath: string): Promise<string> {
+  const { name, dir } = path.parse(idPath);
+  const tsPath = path.join(dir, `${name}.ts`);
+
+  try {
+    await fs.readFile(idPath);
+    return idPath;
+  } catch {
+    // Original path not found, try TypeScript!
+  }
+
+  try {
+    await fs.readFile(tsPath);
+    return tsPath;
+  } catch (error) {
+    // Not TypeScript either!
+    throw new BettererError(`Could not find file at "${idPath}" or "${tsPath}"`, error as Error);
+  }
+}
 
 function isErrorSerialised(error: unknown): error is ThrownErrorSerialized {
   return (error as ThrownErrorSerialized)?.isError;

@@ -1,43 +1,49 @@
-import type { BettererOptionsReporters } from '../config/index.js';
-import type { BettererReporter, BettererReporterFactory, BettererReporterModule } from './types.js';
+import type {
+  BettererOptionsReporters,
+  BettererReporter,
+  BettererReporterFactory,
+  BettererReporterModule
+} from './types.js';
 
 import { BettererError } from '@betterer/errors';
 import path from 'node:path';
 
-import { importDefault } from '../import.js';
+import { importDefault } from '../fs/index.js';
 import { isFunction, isString } from '../utils.js';
 import { BettererReporterΩ } from './reporter.js';
 
 const HOOK_NAMES = Object.getOwnPropertyNames(BettererReporterΩ.prototype) as ReadonlyArray<keyof BettererReporter>;
 
-export function loadDefaultReporter(): BettererReporter {
-  const { createReporter__ } = importDefault<BettererReporterFactory>('@betterer/reporter');
+export async function loadDefaultReporter(): Promise<BettererReporter> {
+  const { createReporter__ } = await importDefault<BettererReporterFactory>('@betterer/reporter');
   return new BettererReporterΩ([createReporter__()]);
 }
 
-export function loadReporters(reporters: BettererOptionsReporters, cwd: string): BettererReporter {
+export async function loadReporters(reporters: BettererOptionsReporters, cwd: string): Promise<BettererReporter> {
   if (reporters.length === 0) {
     return loadDefaultReporter();
   }
 
   return new BettererReporterΩ(
-    reporters.map((reporter) => {
-      if (isString(reporter)) {
-        reporter = resolveReporter(cwd, reporter);
-        try {
-          const module = importDefault<BettererReporterModule>(reporter);
-          if (!module || !module.reporter) {
-            throw new BettererError(`"${reporter}" didn't create a reporter. 😔`);
+    await Promise.all(
+      reporters.map(async (reporter) => {
+        if (isString(reporter)) {
+          reporter = await resolveReporter(cwd, reporter);
+          try {
+            const module = await importDefault<BettererReporterModule>(reporter);
+            if (!module || !module.reporter) {
+              throw new BettererError(`"${reporter}" didn't create a reporter. 😔`);
+            }
+            validate(module.reporter);
+            return module.reporter;
+          } catch (error) {
+            throw new BettererError(`could not import "${reporter}". 😔`, error as BettererError);
           }
-          validate(module.reporter);
-          return module.reporter;
-        } catch (error) {
-          throw new BettererError(`could not require "${reporter}". 😔`, error as BettererError);
         }
-      }
-      validate(reporter);
-      return reporter;
-    })
+        validate(reporter);
+        return reporter;
+      })
+    )
   );
 }
 
@@ -58,10 +64,12 @@ function validate(result: unknown): asserts result is BettererReporter {
   });
 }
 
-function resolveReporter(cwd: string, reporter: string): string {
+async function resolveReporter(cwd: string, reporter: string): Promise<string> {
   try {
-    // Local file:
-    return require.resolve(path.resolve(cwd, reporter));
+    // Local reporter:
+    const localReporterPath = path.resolve(cwd, reporter);
+    await import(localReporterPath);
+    return localReporterPath;
   } catch {
     // npm module:
     return reporter;

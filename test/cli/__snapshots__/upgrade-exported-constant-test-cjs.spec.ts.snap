@@ -1,0 +1,35 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`betterer upgrade > should upgrade exported constant tests in a CommonJS module 1`] = `
+[
+  "🎉 Upgrading Betterer (0ms): 1 task done!
+✅ Upgrading "./.betterer.ts": done!
+・
+・ Betterer can upgrade your test definition file automatically! ✨
+・ Here's what the changes will look like:
+・
+・ - Before
+・ + After
+・
+・ - const { BettererTest } = require('@betterer/betterer');
+・ + const { BettererTest } = require("@betterer/betterer");
+・ - const { bigger } = require('@betterer/constraints');
+・ + const { bigger } = require("@betterer/constraints");
+・
+・   let start = 0;
+・
+・ - module.exports.getsBetter = new BettererTest({
+・ + module.exports.getsBetter = () =>
+・ +   new BettererTest({
+・ -   test: () => start++,
+・ +     test: () => start++,
+・ -   constraint: bigger
+・ - });
+・ +     constraint: bigger,
+・ +   });
+・ +
+・
+・ If that looks okay, run \`betterer upgrade --save\` to write the changes to disk. 💾
+・",
+]
+`;

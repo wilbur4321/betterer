@@ -1,7 +1,10 @@
+import { describe, it, expect } from 'vitest';
+
 import type { BettererPackageJSON } from '@betterer/cli';
 
-// eslint-disable-next-line require-extensions/require-extensions -- tests not ESM ready yet
-import { createFixture } from '../fixture';
+import path from 'node:path';
+
+import { createFixture } from '../fixture.js';
 
 const ARGV = ['node', './bin/betterer'];
 
@@ -26,9 +29,12 @@ describe('betterer cli', () => {
       }
     );
 
-    const configPath = `${paths.config}.js`;
+    const { dir, name } = path.parse(paths.config);
+    const configPath = `${path.join(dir, name)}.js`;
     const fixturePath = paths.cwd;
     const packageJSONPath = resolve('./package.json');
+
+    process.env.BETTERER_WORKER = 'false';
 
     await cli__(fixturePath, [...ARGV, 'init', '--config', configPath]);
 
@@ -40,7 +46,7 @@ describe('betterer cli', () => {
 
     const config = await readFile(configPath);
 
-    expect(config).toEqual('module.exports = {\n  // Add tests here ☀️\n};\n');
+    expect(config).toEqual('export default {\n  // Add tests here ☀️\n};\n');
 
     expect(logs).toMatchSnapshot();
 

@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`betterer should include custom TSQuery warning messages 1`] = `
+exports[`betterer > should include custom TSQuery warning messages 1`] = `
 "// BETTERER RESULTS V2.
 //
 // If this file contains merge conflicts, use \`betterer merge\` to automatically resolve them:
@@ -8,29 +8,29 @@ exports[`betterer should include custom TSQuery warning messages 1`] = `
 //
 exports[\`tsquery\`] = {
   value: \`{
-    \\"src/index.ts:4087252068\\": [
-      [0, 0, 11, \\"no console logs here\\", \\"3870399096\\"]
+    "src/index.ts:4087252068": [
+      [0, 0, 11, "no console logs here", "3870399096"]
     ]
   }\`
 };
 "
 `;
 
-exports[`betterer should include custom TSQuery warning messages 2`] = `
-Array [
+exports[`betterer > should include custom TSQuery warning messages 2`] = `
+[
   "🌟 Betterer (0ms):
 ",
   "🌟 Betterer (0ms): 1 test running...
-🤔 tsquery: running \\"tsquery\\"!
+🤔 tsquery: running "tsquery"!
 ",
   "🌟 Betterer (0ms): 1 test running...
-✅ tsquery: \\"tsquery\\" got checked for the first time! (1 issue) 🎉
+✅ tsquery: "tsquery" got checked for the first time! (1 issue) 🎉
 ",
   "🎉 Betterer (0ms): 1 test done!
-✅ tsquery: \\"tsquery\\" got checked for the first time! (1 issue) 🎉
+✅ tsquery: "tsquery" got checked for the first time! (1 issue) 🎉
 ",
   "🎉 Betterer (0ms): 1 test done!
-✅ tsquery: \\"tsquery\\" got checked for the first time! (1 issue) 🎉
+✅ tsquery: "tsquery" got checked for the first time! (1 issue) 🎉
 
 1 test got checked. 🤔
 1 test got checked for the first time! 🎉

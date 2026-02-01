@@ -1,0 +1,33 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`betterer upgrade > should upgrade exported constant file tests with include in a CommonJS module 1`] = `
+[
+  "🎉 Upgrading Betterer (0ms): 1 task done!
+✅ Upgrading "./.betterer.ts": done!
+・
+・ Betterer can upgrade your test definition file automatically! ✨
+・ Here's what the changes will look like:
+・
+・ - Before
+・ + After
+・
+・ - const { BettererFileTest } = require('@betterer/betterer');
+・ + const { BettererFileTest } = require("@betterer/betterer");
+・
+・ - module.exports.countFiles = new BettererFileTest(async (files, fileTestResult) => {
+・ -   const [filePath] = files;
+・ + module.exports.countFiles = () =>
+・ +   new BettererFileTest(async (files, fileTestResult) => {
+・ +     const [filePath] = files;
+・ -   const file = fileTestResult.addFile(filePath, '');
+・ +     const file = fileTestResult.addFile(filePath, "");
+・ -   file.addIssue(0, 0, '\`$' + '{key}\`');
+・ +     file.addIssue(0, 0, "\`$" + "{key}\`");
+・ - }).include('./src/**/*.ts');
+・ +   }).include("./src/**/*.ts");
+・ +
+・
+・ If that looks okay, run \`betterer upgrade --save\` to write the changes to disk. 💾
+・",
+]
+`;
